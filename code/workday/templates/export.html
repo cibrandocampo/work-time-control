@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load tz %}
+
+{% block title_menu %} Export workout {% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+  th, td {
+    text-align: center;
+  }
+</style>
+
+
+  <form action="." method="post">
+    {% csrf_token %}
+    <table>
+      <th colspan="2" class="collapse_th">Date interval</th>  
+      <tr>
+        <td><input type="date" class="date_input" name="start_date" value='{{start_date|timezone:user.timezone|date:"Y-m-d"}}'></td>
+        <td><input type="date" class="date_input" name="end_date" value='{{end_date|timezone:user.timezone|date:"Y-m-d"}}'></td>
+      </tr>
+    </table>
+    <input class="login_submit" type="submit" value='Download'>
+  </form>
+
+{% endblock %}
