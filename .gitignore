@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#SFTP sublime file configuration
+sftp-config.json

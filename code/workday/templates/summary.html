@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+{% load tz %}
+
+{% block title_menu %} Summary {% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+  th, td {
+    text-align: center;
+  }
+</style>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+      $('.date_input').on('change', function() {this.form.submit();});
+      $('.show-description').click(function() {$(this).closest("td").html($(this).attr('description'));});
+  });
+</script>
+
+
+  <form action="." method="post">
+    {% csrf_token %}
+    <table>
+      <th colspan="2" class="collapse_th"> Workout summary</th>  
+      <tr description="Searching ...">
+        <td><input type="date" class="date_input" name="start_date" value='{{start_date|timezone:user.timezone|date:"Y-m-d"}}'></td>
+        <td><input type="date" class="date_input" name="end_date" value='{{end_date|timezone:user.timezone|date:"Y-m-d"}}'></td>
+      </tr>
+    </table>
+  </form>
+
+  <table>
+    <tr>
+      <th><i class="icon solid fa-calendar-alt"></i></th>
+      <th><i class="icon solid fa-sign-in-alt"></i></th>
+      <th><i class="icon solid fa-sign-out-alt"></i></th>
+      <th><i class="icon solid fa-tasks" title="Tasks"></th>
+      <th><i class="icon solid fa-hourglass-half"></i></th>
+    </tr>
+    
+    {% for signing in signings %}
+      <tr id="signing_{{signing.id}}" description="{% if signing.description %}{{signing.description}}{% else %}No information available!{% endif %}">
+        <td>{{signing.start_date|timezone:user.timezone|date:"d/m"}}</td>
+        <td>{{signing.start_date|timezone:user.timezone|date:"H:i"}}</td>
+        <td> 
+          {% if signing.end_date %}
+            {{signing.end_date|timezone:user.timezone|date:"H:i"}}
+          {% else %}
+            <i class="icon solid fa-history"></i>
+          {% endif %}
+        </td>
+        <td>
+          {% if signing.description %}
+            <i class="icon solid fa-eye show-description" title="Show tasks" description="{{signing.description}}"></i>
+          {% else %}
+            <i class="icon solid fa-times" title="Any task description available"></i>
+          {% endif %}
+        </td>
+        <td>{{signing.get_sign_duration|timedelta_to_hours}}</td>
+      </tr>
+    {% endfor %}
+      <th colspan="4">Total</th>
+      <th>{{worked_time|timedelta_to_hours}}</th>
+    {% if signings %}
+    {% else %}
+      <tr>
+        <td colspan="5">Any workout found for this time interval</td>
+      </tr>
+    {% endif %}
+</table>
+
+{% endblock %}

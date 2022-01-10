@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title_menu %} Login {% endblock %}
+
+{% block content %}
+	<article id="main" class="special login">
+		<header>
+			<h2>Please, login to go</h2><br>
+			<div class="login_box">
+				{% if error%}<h3 class="error">Username and password do not match.</h3>{% endif %}
+				<form action="." method="post">
+					{% csrf_token %}
+					<input type="hidden" name="next_page" value="{{next_page}}">
+					<input class="login_input" type="text"  name="username" value="{{username}}" placeholder="Username...">
+					<input class="login_input" type="password" name="password" placeholder="Password...">
+					<input class="login_submit" type="submit" value="Submit">			
+				</form>
+			</div>
+		</header>
+	</article>
+{% endblock %}
