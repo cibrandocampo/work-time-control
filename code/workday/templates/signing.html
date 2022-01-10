@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load custom_filters %}
 {% load static %}
 {% load tz %}
 
@@ -34,10 +34,10 @@
     
     {% for signing in signings %}
       <tr>
-        <td>{{signing.start_date|timezone:user.timezone|date:"H:i:s"}}</td>
+        <td>{{signing.start_date|timezone:user.timezone|date:"H:i"}}</td>
         <td> 
           {% if signing.end_date %}
-            {{signing.end_date|timezone:user.timezone|date:"H:i:s"}}
+            {{signing.end_date|timezone:user.timezone|date:"H:i"}}
           {% else %}
             <i class="icon solid fa-history"></i>
           {% endif %}
@@ -49,11 +49,11 @@
             <i class="icon solid fa-times" title="Any task description available"></i>
           {% endif %}
         </td>
-        <td>{{signing.get_sign_duration}}</td>
+        <td>{{signing.get_sign_duration|timedelta_to_hours}}</td>
       </tr>
     {% endfor %}
     <th colspan="3">Total</th>
-    <th>{{worked_time}}</th>
+    <th>{{worked_time|timedelta_to_hours}}</th>
   </table>
 
 	<form action="." method="post">
