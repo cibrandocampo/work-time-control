@@ -26,7 +26,7 @@ As mentioned above, Django is used for the development of the application using 
 	- Docker
 
 
-![N|Solid](https://cibrandocampo.github.io/work-time-control/docs/Images/django_structure.png)
+![N|Solid](https://cibrandocampo.github.io/work-time-control/docs/images/django_structure.png)
 
 ## Deploy
 
