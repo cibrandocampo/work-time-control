@@ -76,10 +76,6 @@ def export_signings(request):
         tz = pytz.timezone(request.user.timezone)
         writer.writerow(['Company', 'Date', 'Start', 'End', 'Worked', 'Description'])
         for sign in get_signings(request.user, start_date, end_date):
-            print("--------------------------------")
-            print(sign.start_date.replace(tzinfo=tz))
-            print(request.user.timezone)
-            print(sign.start_date.astimezone(tz))
             writer.writerow([sign.company if sign.company else '-',
                              sign.start_date.strftime('%d/%m/%Y'),
                              sign.start_date.astimezone(tz).strftime('%H:%M:%S'),
