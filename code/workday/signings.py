@@ -2,15 +2,18 @@ import logging
 import datetime
 
 from .models import Signing
+from accounts.models import Company
 
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 
-def get_signings(employee, start_date, end_date):
+def get_signings(employee, start_date, end_date, id_company='all'):
     logger.debug('get_signings (signings.py): ' + str(employee) + ' dates: ' + str(start_date) + '/' + str(end_date))
     signs = Signing.objects.filter(employee=employee).filter(start_date__gt=start_date).filter(start_date__lt=end_date)
+    if id_company.isdigit() and Company.objects.filter(pk=id_company).count():
+        signs = signs.filter(company=Company.objects.get(pk=id_company))
     logger.debug('get_signings (signings.py): Signs ' + str(signs))
     return signs.order_by('start_date')
 
@@ -29,13 +32,28 @@ def get_worked_time(employee, signings):
     return worked_time
 
 
-def set_singin(employee):
+def set_singin(employee, id_company):
     logger.debug('set_singin (signings.py): employee ' + str(employee))
     if get_incomplete_signing(employee):
         logger.warning('set_singin (signings.py): Incomplete signing, singout before signin - ' + str(employee))
         set_singout(employee)
         return False
-    new_signing = Signing(employee=employee)
+
+    companies = employee.companies.all()
+
+    if id_company.isdigit() and Company.objects.filter(pk=id_company).count():
+        company = Company.objects.get(pk=id_company)
+        if company in companies:
+            logger.debug('set_singin (signings.py): valid company')
+            new_signing = Signing(employee=employee, company=company)
+
+    elif employee.default_company:
+        new_signing = Signing(employee=employee, company=employee.default_company)
+
+    else:
+        logger.warning('set_singin (signings.py): invalid company for: ' + str(employee))
+        new_signing = Signing(employee=employee)
+
     new_signing.save()
     logger.debug('set_singin (signings.py): completed! ')
     return new_signing

@@ -1,4 +1,5 @@
 import csv
+import pytz
 import logging
 import datetime
 
@@ -19,7 +20,7 @@ def signing(request):
     if request.method == 'POST':
         logger.debug('signing (views.py): POST with action: ' + str(request.POST.get('action')))
         if request.POST.get('action') == 'start':
-            set_singin(request.user)
+            set_singin(request.user, request.POST.get('company'))
 
         elif request.POST.get('action') == 'end':
             set_singout(request.user, request.POST.get('description'))
@@ -28,6 +29,8 @@ def signing(request):
     now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     context['datetime'] = now
+    context['companies'] = request.user.companies.all()
+    context['default_company'] = request.user.default_company
     context['signings'] = get_signings(request.user, today, now)
     context['incomplete_sign'] = get_incomplete_signing(request.user)
     context['worked_time'] = get_worked_time(request.user, context['signings'])
@@ -40,15 +43,18 @@ def summary(request):
     context = {}
     if request.method == 'POST':
         logger.debug('summary (views.py): POST')
+        context['company'] = request.POST.get('company')
         end_day = datetime.timedelta(hours=23, minutes=59, seconds=59)
         context['start_date'] = str_to_datetime(request.POST.get('start_date'))
         context['end_date'] = str_to_datetime(request.POST.get('end_date')) + end_day
 
     else:
+        context['company'] = 'all'
         logger.debug('summary (views.py): GET')
         context['start_date'], context['end_date'] = get_week_days()
 
-    context['signings'] = get_signings(request.user, context['start_date'], context['end_date'])
+    context['companies'] = request.user.companies.all()
+    context['signings'] = get_signings(request.user, context['start_date'], context['end_date'], context['company'])
     context['worked_time'] = get_worked_time(request.user, context['signings'])
     return render(request, 'summary.html', context)
 
@@ -67,10 +73,13 @@ def export_signings(request):
         response.write(u'\ufeff'.encode('utf8'))
 
         writer = csv.writer(response, delimiter=';')
-        writer.writerow(['Start date', 'End date', 'Worked interval', 'Description'])
+        tz = pytz.timezone(request.user.timezone)
+        writer.writerow(['Company', 'Date', 'Start', 'End', 'Worked', 'Description'])
         for sign in get_signings(request.user, start_date, end_date):
-            writer.writerow([sign.start_date,
-                             sign.end_date,
+            writer.writerow([sign.company if sign.company else '-',
+                             sign.start_date.strftime('%d/%m/%Y'),
+                             sign.start_date.astimezone(tz).strftime('%H:%M:%S'),
+                             sign.end_date.astimezone(tz).strftime('%H:%M:%S'),
                              sign.get_sign_duration(),
                              sign.description]
                             )
