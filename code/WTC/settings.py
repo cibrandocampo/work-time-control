@@ -73,19 +73,19 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
         'file': {
-            'level': os.getenv('LOG_LEVEL', 'WARNING'),
+            'level': os.getenv('LOG_LEVEL', 'INFO'),
             'class': 'logging.FileHandler',
             'filename': os.getenv('LOG_PATH', '/var/log/wtc.log'),
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('LOG_LEVEL', 'WARNING'),
+            'level': os.getenv('LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
     },

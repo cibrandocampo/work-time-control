@@ -21,19 +21,21 @@
 
 	<table>
     <tr>
-      <th colspan="4" class="collapse_th">{{datetime|timezone:user.timezone|date:"l, d M Y"}}</th>
+      <th colspan="{% if companies|length > 1 %}5{% else %}4{% endif %}" class="collapse_th">{{datetime|timezone:user.timezone|date:"l, d M Y"}}</th>
     </tr>
     {% if signings %}
       <tr>
+        {% if companies|length > 1 %}<th><i class="icon solid fa-building"></i></th>{% endif %}
         <th><i class="icon solid fa-sign-in-alt"></i></th>
         <th><i class="icon solid fa-sign-out-alt"></i></th>
         <th><i class="icon solid fa-quote-right" title="Notes"></th>
-        <th><i class="icon solid fa-hourglass-half"></th>
+        <th><i class="icon solid fa-hourglass-half"></th>      
       </tr>
     {% endif %}
     
     {% for signing in signings %}
       <tr>
+         {% if companies|length > 1 %}<td>{{signing.company}}</td>{% endif %}
         <td>{{signing.start_date|timezone:user.timezone|date:"H:i"}}</td>
         <td> 
           {% if signing.end_date %}
@@ -52,23 +54,40 @@
         <td>{{signing.get_sign_duration|timedelta_to_hours}}</td>
       </tr>
     {% endfor %}
-    <th colspan="3">Total</th>
+    <th colspan="{% if companies|length > 1 %}4{% else %}3{% endif %}">Total</th>
     <th>{{worked_time|timedelta_to_hours}}</th>
   </table>
 
 	<form action="." method="post">
 		{% csrf_token %}
 		<input type="hidden" name="action" value="{% if incomplete_sign %}end{% else %}start{% endif %}">
-    {% if incomplete_sign %}
+    
+
     <table>
-      <tr>
-        <th colspan="2"><input type="text" name="description"></th>
+        <tr>
+        {% if incomplete_sign %}
+            <th colspan="2"><input type="text" name="description"></th>
+          {% if companies|length > 1 %}  
+            </tr>
+            <tr>
+              <th>{{incomplete_sign.company}}</th>
+          {% endif %}
+        {% else %}
+          {% if companies|length > 1 %}
+            <th>
+              <select id="company_select" name="company">
+                {% for employee_company in companies %}
+                <option value="{{employee_company.id}}" {% if employee_company == default_company %} selected {% endif %} >{{employee_company.name}}</option>
+                {% endfor %}
+              </select>
+            </th>
+          {% else %}
+            <input id="company_input" name="company" type="hidden" value="default">
+          {% endif %}
+        {% endif %}
         <th><input class="login_submit" type="submit" value='{% if incomplete_sign %}End{% else %}Start{% endif %}'></th>
       </tr>
     </table>  
-    {% else %}
-		<input class="login_submit" type="submit" value='Start'>
-    {% endif %}
 	</form>
 
 {% endblock %}
