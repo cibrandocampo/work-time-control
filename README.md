@@ -35,7 +35,7 @@ To make deployment as easy as possible, the entire application can be deployed t
 Or executing the command:
 
 ```sh
-docker pull cibrandocampo/work-time-control:1.0.0
+docker pull cibrandocampo/work-time-control:1.1.1
 ```
 
 ### Enviroment variables

@@ -21,7 +21,7 @@ class Command(BaseCommand):
             for old_backup in sorted(Path(settings.BACKUP_PATH).iterdir(), key=os.path.getmtime)[:-max_versions]:
                 os.remove(old_backup)
 
-            path_dumpdata_file = settings.BACKUP_PATH + timezone.now().strftime('%d_%b_%Y-%H_%M_%S') + '_wtc_backup.xml'
+            path_dumpdata_file = settings.BACKUP_PATH + timezone.now().strftime('%Y_%b_%d-%H_%M_%S') + '_wtc_backup.xml'
             os.popen('python manage.py dumpdata --indent 4 --natural-primary'
                      ' --natural-foreign --exclude sessions.session --format xml > ' + path_dumpdata_file)
 
