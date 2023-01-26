@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+
+  wtc-wsgi:
+    container_name: wtc_wsgi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wtc_wsgi:dev
+    restart: unless-stopped
+    
+    # Only for development purposes
+    command: tail -f /dev/null
+    
+    environment:
+      PYTHONPATH: /app
+      PYTHONDONTWRITEBYTECODE: 1
+    volumes:
+      - ../:/app
+    
+    network_mode: host
