@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # Enviroment variables
 ENV BACKUP_PATH=/backup/
@@ -8,20 +8,20 @@ ENV ADMIN_EMAIL=admin@wtc.com
 ENV PORT=8000
 ENV WORKERS=8
 
-# Create directories
-RUN mkdir /wtc
-WORKDIR /wtc
 
-# Install dependencies
-COPY install/requirements /wtc/
+WORKDIR /app
+
+# Copy & install requirements
+COPY deploy/requirements requirements
 RUN pip install --upgrade pip && pip install -r requirements && rm requirements
 
 # Deploying docker enrtypoint
-COPY install/entrypoint.sh /wtc/
-RUN chmod +x /wtc/entrypoint.sh
+COPY deploy/entrypoint.sh entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Deploying code and static files
-COPY code/ /wtc/
+
+ADD src/ /app
 RUN python manage.py collectstatic --noinput
 
 EXPOSE $PORT

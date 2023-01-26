@@ -17,6 +17,6 @@ services:
       PYTHONPATH: /app
       PYTHONDONTWRITEBYTECODE: 1
     volumes:
-      - ../:/app
+      - ./src/:/app
     
     network_mode: host
