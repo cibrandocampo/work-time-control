@@ -20,8 +20,7 @@ COPY deploy/entrypoint.sh entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Deploying code and static files
-
-ADD src/ /app
+COPY src/ .
 RUN python manage.py collectstatic --noinput
 
 EXPOSE $PORT
