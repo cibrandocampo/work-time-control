@@ -20,9 +20,9 @@ class Company(models.Model):
 
 class WorkLocation(models.Model):
     name = models.CharField('Work Location name', max_length=100)
-    teleworking = models.BooleanField('Teleworking location', default=False)
-    longitude = models.FloatField('Location longitude', default=0.0)
+    remote = models.BooleanField('Remote location', default=False)
     latitude = models.FloatField('Location latitude', default=0.0)
+    longitude = models.FloatField('Location longitude', default=0.0)
 
     def __str__(self):
         return self.name

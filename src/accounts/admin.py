@@ -14,7 +14,7 @@ admin.site.register(Company, CompanyAdmin)
 
 
 class WorkLocationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'teleworking', 'longitude', 'latitude')
+    list_display = ('name', 'remote', 'longitude', 'latitude')
     search_fields = ('name', 'longitude', 'latitude')
 
 

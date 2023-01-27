@@ -2,7 +2,7 @@ import logging
 import datetime
 
 from .models import Signing
-from accounts.models import Company
+from accounts.models import Company, WorkLocation
 
 from django.utils import timezone
 
@@ -32,20 +32,23 @@ def get_worked_time(employee, signings):
     return worked_time
 
 
-def set_singin(employee, id_company):
+def set_singin(employee, id_company, id_worklocation, description):
     logger.debug('set_singin (signings.py): employee ' + str(employee))
     if get_incomplete_signing(employee):
         logger.warning('set_singin (signings.py): Incomplete signing, singout before signin - ' + str(employee))
         set_singout(employee)
         return False
 
-    companies = employee.companies.all()
-
-    if id_company.isdigit() and Company.objects.filter(pk=id_company).count():
-        company = Company.objects.get(pk=id_company)
-        if company in companies:
-            logger.debug('set_singin (signings.py): valid company')
-            new_signing = Signing(employee=employee, company=company)
+    if id_company.isdigit():
+        company = employee.companies.filter(pk=id_company).first()
+        worklocation = employee.worklocations.filter(pk=id_worklocation).first()
+        logger.debug('set_singin (signings.py): valid company')
+        new_signing = Signing(
+            employee=employee,
+            company=company, 
+            description=description,
+            worklocation=worklocation,
+        )
 
     elif employee.default_company:
         new_signing = Signing(employee=employee, company=employee.default_company)
