@@ -1,6 +1,6 @@
 import logging
 
-from accounts.models import Company
+from accounts.models import Company, WorkLocation
 
 from django.db import models
 from django.conf import settings
@@ -16,6 +16,7 @@ class Signing(models.Model):
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
     description = models.TextField('Signing description', blank=True)
+    worklocation = models.ForeignKey(WorkLocation, on_delete=models.CASCADE, null=True, blank=True)
 
     def validate_unique(self, *args, **kwargs):
         logger.debug('validate_unique (models.py)')

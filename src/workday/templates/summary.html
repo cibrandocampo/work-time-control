@@ -46,11 +46,12 @@
 
   <table>
     <tr>
-      {% if companies|length > 1 %}<th><i class="icon solid fa-building"></i></th>{% endif %}
+      {% if companies|length > 1 %}<th><i class="icon solid fa-briefcase"></i></th>{% endif %}
       <th><i class="icon solid fa-calendar-alt"></i></th>
+      <th><i class="icon solid fa-map-marker"></i></th>
       <th><i class="icon solid fa-sign-in-alt"></i></th>
       <th><i class="icon solid fa-sign-out-alt"></i></th>
-      <th><i class="icon solid fa-tasks" title="Tasks"></th>
+      <th><i class="icon solid fa-comment" title="Tasks"></th>
       <th><i class="icon solid fa-hourglass-half"></i></th>
     </tr>
     
@@ -58,6 +59,17 @@
       <tr id="signing_{{signing.id}}" description="{% if signing.description %}{{signing.description}}{% else %}No information available!{% endif %}">
         {% if companies|length > 1 %}<td>{% if signing.company %}{{signing.company}}{% else %}-{% endif %}</td>{% endif %}
         <td>{{signing.start_date|timezone:user.timezone|date:"d/m"}}</td>
+        <td>
+          {% if signing.worklocation %}
+            {% if signing.worklocation.remote %}
+              <i class="icon solid fa-laptop-house" title="{{signing.worklocation.name}}"></i>
+            {% else %}
+            <i class="icon solid fa-building" title="{{signing.worklocation.name}}"></i>
+            {% endif %}
+          {% else %}
+            -         
+          {% endif %}
+        </td>
         <td>{{signing.start_date|timezone:user.timezone|date:"H:i"}}</td>
         <td> 
           {% if signing.end_date %}
