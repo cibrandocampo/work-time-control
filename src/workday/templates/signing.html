@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+{% load tz %}
+
+{% block title_menu %} Signing {% endblock %}
+
+{% block content %}
+
+  <style type="text/css">
+    th, td {
+      text-align: center;
+      vertical-align: center;
+    }
+    
+    .location_table {
+      margin: 0px;
+      text-align: center;
+      font-size: 10px;
+    }
+
+  </style>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+        $('.show-description').click(function() {$(this).closest("td").html($(this).attr('description'));});
+
+        {% if not incomplete_sign %}
+          if ("geolocation" in navigator){
+            navigator.geolocation.getCurrentPosition(function(position){ 
+            $("#location_table").append("Lat : " + position.coords.latitude + " - Lang : " + position.coords.longitude);
+
+            $.post("/worklocation/",
+            {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
+            },
+            function(data,status){         
+              if (status=="success"){
+                $("#worklocation_select").val(data.worklocation_id).change();
+              };
+            });
+          });
+
+          }else{
+            console.log("Browser doesn't support geolocation!");
+          
+          };
+        {% endif %}
+    });
+
+  </script>
+
+	<table>
+    <tr>
+      <th colspan="{% if companies|length > 1 %}6{% else %}5{% endif %}" class="collapse_th">{{datetime|timezone:user.timezone|date:"l, d M Y"}}</th>
+    </tr>
+    {% if signings %}
+      <tr>
+        {% if companies|length > 1 %}<th><i class="icon solid fa-briefcase"></i>{% endif %}
+        <th><i class="icon solid fa-building"></i></th>
+        <th><i class="icon solid fa-sign-in-alt"></i></th>
+        <th><i class="icon solid fa-sign-out-alt"></i></th>
+        <th><i class="icon solid fa-comment" title="Notes"></th>
+        <th><i class="icon solid fa-hourglass-half"></th>      
+      </tr>
+    {% endif %}
+    
+    {% for signing in signings %}
+      <tr>
+          {% if companies|length > 1 %}
+            <td>{{signing.company}}</td>
+          {% endif %}
+        
+        <td>
+          {% if signing.worklocation %}
+            {% if signing.worklocation.remote %}
+              <i class="icon solid fa-laptop-house" title="{{signing.worklocation.name}}"></i>
+            {% else %}
+            <i class="icon solid fa-building" title="{{signing.worklocation.name}}"></i>
+            {% endif %}
+          {% else %}
+            -         
+          {% endif %}
+        </td>
+        <td>{{signing.start_date|timezone:user.timezone|date:"H:i"}}</td>
+        <td> 
+          {% if signing.end_date %}
+            {{signing.end_date|timezone:user.timezone|date:"H:i"}}
+          {% else %}
+            <i class="icon solid fa-history"></i>
+          {% endif %}
+        </td>
+        <td>
+          {% if signing.description %}
+            <i class="icon solid fa-eye show-description" title="Show tasks" description="{{signing.description}}"></i>
+          {% else %}
+            <i class="icon solid fa-times" title="Any task description available"></i>
+          {% endif %}
+        </td>
+        <td>{{signing.get_sign_duration|timedelta_to_hours}}</td>
+      </tr>
+    {% endfor %}
+    <th colspan="{% if companies|length > 1 %}5{% else %}4{% endif %}">Total</th>
+    <th>{{worked_time|timedelta_to_hours}}</th>
+  </table>
+  <br>
+
+	<form action="." method="post">
+		{% csrf_token %}
+
+    {% if incomplete_sign %}
+      <!--Show end signing-->
+      <input type="hidden" name="action" value="end">
+      <table>
+        <tr>
+          <th colspan="5">End last signing</th>
+        </tr>      
+        <tr>
+          <th><i class="icon solid fa-comment" title="Notes"></i></th>
+          <td colspan="3"><input type="text" name="description" value="{{incomplete_sign.description}}"></td>
+          <td rowspan="2" style="vertical-align : middle;text-align:center;">
+            <input class="signing_submit" type="submit" value='END'>
+          </td>
+        </tr>        
+        <tr>
+          <th><i class="icon solid fa-building"></i></th>
+          <td>{{incomplete_sign.company.name}}</td>
+          <th><i class="icon solid fa-map-marker"></i></th>
+          <td>
+            {% if incomplete_sign.worklocation %}
+              {{incomplete_sign.worklocation.name}}
+            {% else %}
+              Unknown
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+  {% else %}
+    <!--Show start signing-->
+    <input type="hidden" name="action" value="start">
+    <table>
+      <tr>
+          <th colspan="3">Start new signing</th>
+        </tr>      
+        <tr>
+          <th><i class="icon solid fa-building"></i></th>
+          <td>
+            <select id="company_select" name="company">
+              {% for employee_company in companies %}
+              <option value="{{employee_company.id}}" {% if employee_company == default_company %} selected {% endif %} >{{employee_company.name}}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td rowspan="2" style="vertical-align : middle;text-align:center;">
+            <input class="signing_submit" type="submit" value='START'>
+            <p class="location_table" id="location_table"></p>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <i class="icon solid fa-map-marker"></i>
+          </th>
+          <td>
+            <select id="worklocation_select" name="worklocation">
+              {% for worklocation in worklocations %}
+              <option value="{{worklocation.id}}">{{worklocation.name}}</option>
+              {% endfor %}
+              <option value="0" selected >Unknown</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th><i class="icon solid fa-comment" title="Notes"></i></th>
+          <td colspan="2"><input type="text" name="description"></td>
+        </tr>
+    </table>
+  {% endif %}
+		
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+{% endblock %}
