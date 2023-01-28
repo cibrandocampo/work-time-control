@@ -7,9 +7,13 @@
 
 {% block content %}
 
-<style type="text/css">
+<style>
   th, td {
     text-align: center;
+    vertical-align: center;
+  }
+  .table_big_colum{
+    width: 80%;
   }
 </style>
 
@@ -23,20 +27,16 @@
     {% csrf_token %}
     <table>
       <tr><th colspan="2" class="collapse_th"> Workout summary</th></tr>
-      {% if companies|length > 1 %}
         <tr>
           <th colspan="2" class="collapse_th">
             <select id="company_select" name="company" class="date_input">
-              <option value="all" {% if company == 'all' %} selected {% endif %} >All</option>
-              {% for employee_company in companies %}
-                <option value="{{employee_company.id}}" {% if employee_company.id|stringformat:"i" == company %}selected{% endif %}>{{employee_company.name}}</option>
+              <option value="all">All</option>
+              {% for company in companies %}
+                <option value="{{company.id}}" {% if search_company == company.id|slugify %}selected{% endif %}>{{company.name}}</option>
               {% endfor %}
             </select>
           </th>
         </tr>
-      {% else %}
-        <input id="company_input" name="company" type="hidden" value="all">
-      {% endif %}
       <tr>
         <td><input type="date" class="date_input" name="start_date" value='{{start_date|timezone:user.timezone|date:"Y-m-d"}}'></td>
         <td><input type="date" class="date_input" name="end_date" value='{{end_date|timezone:user.timezone|date:"Y-m-d"}}'></td>
@@ -46,18 +46,18 @@
 
   <table>
     <tr>
-      {% if companies|length > 1 %}<th><i class="icon solid fa-briefcase"></i></th>{% endif %}
+      <th class="hidden-mobile"><i class="icon solid fa-briefcase"></i></th>
       <th><i class="icon solid fa-calendar-alt"></i></th>
       <th><i class="icon solid fa-map-marker"></i></th>
       <th><i class="icon solid fa-sign-in-alt"></i></th>
       <th><i class="icon solid fa-sign-out-alt"></i></th>
-      <th><i class="icon solid fa-comment" title="Tasks"></th>
+      <th class="hidden-mobile"><i class="icon solid fa-comment" title="Tasks"></th>
       <th><i class="icon solid fa-hourglass-half"></i></th>
     </tr>
     
     {% for signing in signings %}
       <tr id="signing_{{signing.id}}" description="{% if signing.description %}{{signing.description}}{% else %}No information available!{% endif %}">
-        {% if companies|length > 1 %}<td>{% if signing.company %}{{signing.company}}{% else %}-{% endif %}</td>{% endif %}
+        <td class="hidden-mobile">{{signing.company}}</td>
         <td>{{signing.start_date|timezone:user.timezone|date:"d/m"}}</td>
         <td>
           {% if signing.worklocation %}
@@ -78,7 +78,7 @@
             <i class="icon solid fa-history"></i>
           {% endif %}
         </td>
-        <td>
+        <td class="hidden-mobile">
           {% if signing.description %}
             <i class="icon solid fa-eye show-description" title="Show tasks" description="{{signing.description}}"></i>
           {% else %}
@@ -88,14 +88,21 @@
         <td>{{signing.get_sign_duration|timedelta_to_hours}}</td>
       </tr>
     {% endfor %}
-      <th colspan="{% if companies|length > 1 %}5{% else %}4{% endif %}">Total</th>
-      <th>{{worked_time|timedelta_to_hours}}</th>
+  </table>
+  <table>
     {% if signings %}
+      <th class="table_big_colum">Total</th>
+      <th>{{worked_time|timedelta_to_hours}}</th>
     {% else %}
       <tr>
-        <td colspan="6">Any workout found for this time interval</td>
+        <td>Any workout found for this time interval</td>
       </tr>
     {% endif %}
-</table>
+
+
+  </table>
+
+
+
 
 {% endblock %}

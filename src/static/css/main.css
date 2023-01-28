@@ -1,6 +1,12 @@
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,400italic,600");
 @import url("fontawesome-all.min.css");
 
+@media (max-width: 767px) {
+    .hidden-mobile {
+      display: none;
+    }
+}
+
 html, body, div, span, applet, object,
 iframe, h1, h2, h3, h4, h5, h6, p, blockquote,
 pre, a, abbr, acronym, address, big, cite,
@@ -3246,3 +3252,9 @@ tr:nth-child(even) {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+.location_table {
+    margin: 0px;
+    text-align: center;
+    font-size: 10px;
+  }

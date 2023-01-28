@@ -82,18 +82,18 @@ def summary(request):
     context = {}
     if request.method == 'POST':
         logger.debug('summary (views.py): POST')
-        context['company'] = request.POST.get('company')
+        context['search_company'] = request.POST.get('company')
         end_day = datetime.timedelta(hours=23, minutes=59, seconds=59)
         context['start_date'] = str_to_datetime(request.POST.get('start_date'))
         context['end_date'] = str_to_datetime(request.POST.get('end_date')) + end_day
 
     else:
-        context['company'] = 'all'
+        context['search_company'] = 'all'
         logger.debug('summary (views.py): GET')
         context['start_date'], context['end_date'] = get_week_days()
 
     context['companies'] = request.user.companies.all()
-    context['signings'] = get_signings(request.user, context['start_date'], context['end_date'], context['company'])
+    context['signings'] = get_signings(request.user, context['start_date'], context['end_date'], context['search_company'])
     context['worked_time'] = get_worked_time(request.user, context['signings'])
     return render(request, 'summary.html', context)
 
