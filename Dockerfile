@@ -25,4 +25,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE $PORT
 
-CMD ["/bin/bash", "/wtc/entrypoint.sh"]
+CMD ["/bin/bash", "/app/entrypoint.sh"]
