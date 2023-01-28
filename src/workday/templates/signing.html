@@ -7,18 +7,11 @@
 
 {% block content %}
 
-  <style type="text/css">
+  <style>
     th, td {
       text-align: center;
       vertical-align: center;
-    }
-    
-    .location_table {
-      margin: 0px;
-      text-align: center;
-      font-size: 10px;
-    }
-
+    } 
   </style>
 
   <script type="text/javascript">
@@ -28,8 +21,7 @@
         {% if not incomplete_sign %}
           if ("geolocation" in navigator){
             navigator.geolocation.getCurrentPosition(function(position){ 
-            $("#location_table").append("Lat : " + position.coords.latitude + " - Lang : " + position.coords.longitude);
-
+            $("#location_table").append("Lat : " + position.coords.latitude + " - Long : " + position.coords.longitude);
             $.post("/worklocation/",
             {
               latitude: position.coords.latitude,
@@ -154,7 +146,7 @@
           </td>
           <td rowspan="2" style="vertical-align : middle;text-align:center;">
             <input class="signing_submit" type="submit" value='START'>
-            <p class="location_table" id="location_table"></p>
+            <p class="location_table hidden-mobile" id="location_table"></p>
           </td>
         </tr>
         <tr>
