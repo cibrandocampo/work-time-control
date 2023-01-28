@@ -54,6 +54,8 @@ There are multiple variables that allow you to run the application with custom s
 | BACKUP_MAX_VERSIONS (number)| 3 |
 | LOG_LEVEL (DEBUG, INFO, WARNING, ERROR, CRITICAL)| WARNING |
 | LOG_PATH | /var/log/wtc.log |
+| ALLOWED_HOSTS | * |
+| CSRF_TRUSTED_ORIGINS | http://*127.0.0.1,https://*127.0.0.1 |
 
 ## Maintenance
 
@@ -79,3 +81,10 @@ This section describes and details the next improvements proposed in the project
 
 ### Functionality
 - Support work teams by sharing the hours worked by each of them.
+
+## iOS location issues
+
+Go to iPhone settings > Privacy and security > location and make sure Safari is not set to "Never"
+
+More info: [Stackoverflow](https://stackoverflow.com/questions/72376616/geolocation-in-safari-iphone/75267430#75267430)
+
