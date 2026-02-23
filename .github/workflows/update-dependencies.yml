@@ -1,0 +1,206 @@
+name: Update Dependencies and Build Docker
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: frontend
+        run: npm run test:run
+
+  test-backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: wtc_test
+          POSTGRES_USER: wtc
+          POSTGRES_PASSWORD: wtc_test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-cov pytest-django
+
+      - name: Run tests
+        working-directory: backend/src
+        env:
+          DATABASE_URL: postgres://wtc:wtc_test_password@localhost:5432/wtc_test
+          DEBUG: 'True'
+          SECRET_KEY: 'test-secret-key-for-ci'
+        run: |
+          python -m pytest -v
+
+  build-latest:
+    needs: [test-frontend, test-backend]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            context: ./backend
+            image: cibrandocampo/wtc-backend
+          - component: frontend
+            context: ./frontend
+            image: cibrandocampo/wtc-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile.prod
+          push: true
+          platforms: linux/amd64,linux/arm64/v8
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Notify success
+        run: |
+          echo "Docker image for ${{ matrix.component }} updated with latest dependencies"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+
+  build-stable:
+    needs: [test-frontend, test-backend]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            context: ./backend
+            image: cibrandocampo/wtc-backend
+          - component: frontend
+            context: ./frontend
+            image: cibrandocampo/wtc-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$TAG" ]; then
+            echo "No tags found, skipping stable build"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "Found latest tag: $TAG"
+          fi
+
+      - name: Checkout latest tag
+        if: steps.get_tag.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get_tag.outputs.tag }}
+
+      - name: Set up Docker Buildx
+        if: steps.get_tag.outputs.skip != 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.get_tag.outputs.skip != 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        if: steps.get_tag.outputs.skip != 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=stable
+            type=raw,value=${{ steps.get_tag.outputs.tag }}
+
+      - name: Build and push Docker image
+        if: steps.get_tag.outputs.skip != 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile.prod
+          push: true
+          platforms: linux/amd64,linux/arm64/v8
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Notify success
+        if: steps.get_tag.outputs.skip != 'true'
+        run: |
+          echo "Docker image for ${{ matrix.component }} updated from tag ${{ steps.get_tag.outputs.tag }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+
+      - name: Notify skip
+        if: steps.get_tag.outputs.skip == 'true'
+        run: |
+          echo "No tags found, skipping stable build for ${{ matrix.component }}"

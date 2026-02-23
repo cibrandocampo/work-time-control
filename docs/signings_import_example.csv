@@ -1,0 +1,6 @@
+start_time,end_time,location_id,description
+2026-02-01 09:00,2026-02-01 18:00,1,Office work
+2026-02-02 08:30,2026-02-02 17:30,1,Client meetings
+2026-02-03 09:15,2026-02-03 18:45,,Remote work
+2026-02-04 08:00,2026-02-04 16:00,2,Secondary office
+2026-02-05 09:00,,,Open signing (no checkout time)

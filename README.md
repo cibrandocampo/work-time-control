@@ -1,90 +1,250 @@
-# Work Time Control
-Work Time Control (WTC) it is a Time Control system that allows the registration of the Labor Day. The application is designed to record working hours and show them to the user via website or exporting all the information in excel format. 
+# Work Time Control (WTC)
 
-Although it is quite obvious, the system allows registering multiple users with their particularities such as timezone or weekly working hours for each.
+Time tracking and work hours management system with overtime calculation.
 
-In this first version, the system is monobloc, based on the Django Framework, but it is designed to add the Django REST Framework module to separate the Front-End to the the Back-end in the next version.
+## Requirements
 
-![N|Solid](https://cibrandocampo.github.io/work-time-control/docs/images/signing.png)
+- Docker and Docker Compose
+- Python 3.13+ (for local development)
 
-## Code
-All the source code of the project is available in: [GitHub repository](https://github.com/cibrandocampo/work-time-control/)
+## Quick Start
 
-## Design
-As mentioned above, Django is used for the development of the application using the following technologies:
+```bash
+# Start services
+docker compose up -d
 
-- Back-End
-    - Python 3
-- Database
-	- SQLite 3 ([100% compatible with MariaDB and MySQL changing the database settings in settings.py](https://docs.djangoproject.com/en/4.0/ref/databases/#mariadb-notes))
-- Front-End 
-	- HTML5
-	- JS and JQuery Framework
-	- CSS and SCSS. FontAwesome for icons
+# View logs
+docker compose logs -f backend
 
-- Deploy
-	- Docker
-
-
-![N|Solid](https://cibrandocampo.github.io/work-time-control/docs/images/django_structure.png)
-
-## Deploy
-
-To make deployment as easy as possible, the entire application can be deployed through Docker. For this reason, a Dockerfile is included where the instructions to generate the Docker image can be found. Also, for simplicity, this image is available on Dockerhub: https://hub.docker.com/r/cibrandocampo/work-time-control
-
-Or executing the command:
-
-```sh
-docker pull cibrandocampo/work-time-control:stable
+# Frontend available at http://localhost:5173
+# API available at http://localhost:8000
+# Swagger documentation: http://localhost:8000/api/docs/
 ```
 
-### Enviroment variables
+## Project Structure
 
-There are multiple variables that allow you to run the application with custom settings.
+```
+work-time-control/
+├── backend/                 # Django REST Framework API
+│   └── src/
+│       ├── apps/
+│       │   ├── accounts/    # Authentication and users
+│       │   ├── companies/   # Companies, locations and holidays
+│       │   ├── core/        # Day types (DayType)
+│       │   ├── workdays/    # Signings and work days
+│       │   └── integrations/# External time manager integration
+│       └── config/          # Django configuration
+├── docs/                    # Documentation and examples
+├── frontend/                # Vue 3 + PrimeVue frontend
+└── docker-compose.yaml
+```
 
-| Variable | Default |
-| ------ | ------ |
-| BACKUP_PATH | /backup/ |
-| ADMIN_USERNAME | admin |
-| ADMIN_PASSWORD | 9FAeHdPv6p |
-| ADMIN_EMAIL | admin@wtc.com |
-| PORT | 8000 |
-| WORKERS | 8 |
-| BACKUP_INTERVAL (hours) | 12 |
-| BACKUP_MAX_VERSIONS (number)| 3 |
-| LOG_LEVEL (DEBUG, INFO, WARNING, ERROR, CRITICAL)| WARNING |
-| LOG_PATH | /var/log/wtc.log |
-| ALLOWED_HOSTS | * |
-| CSRF_TRUSTED_ORIGINS | http://*127.0.0.1,https://*127.0.0.1 |
+## Main API Endpoints
 
-## Maintenance
+### Authentication
 
-The system has an automatic backup system. The system dumps the contents of the database in an XML file stored in the indicated path (by default /backup/ ). 
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/token/` | POST | Obtain JWT token |
+| `/api/auth/token/refresh/` | POST | Refresh token |
+| `/api/me/` | GET | Current user information |
 
-For this reason, it is recommended to mount this directory on a dcoker volume and keep it safe from the docker container.
+### Signings
 
-Furthermore, when the container starts up, if it is the first run, if there are backup files, these are automatically loaded into the database.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/signings/` | GET | List signings |
+| `/api/signings/` | POST | Create signing (check-in) |
+| `/api/signings/{id}/` | GET | Signing details |
+| `/api/signings/{id}/checkout/` | POST | End signing (check-out) |
+| `/api/signings/active/` | GET | Current active signing |
+| `/api/signings/import/` | POST | Import signings from CSV |
+| `/api/signings/export/` | GET | Export signings to CSV |
+| `/api/integrations/sync/` | POST | Sync from external time manager |
 
+### Work Days
 
-### Next Steps
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/workdays/` | GET/POST | List/create work days |
+| `/api/workdays/{id}/` | GET/PUT/DELETE | Manage work day |
 
-This section describes and details the next improvements proposed in the project roadmap.
+### Summaries
 
-### Technology
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/summary/day/` | GET | Current day summary |
+| `/api/summary/day/{date}/` | GET | Specific day summary |
+| `/api/summary/period/` | GET | Monthly/yearly summary |
 
-- Separation between the Back-end of the Fornt-end. Django REST Framework will be incorporated to convert the backend into an API-REST system, and a Front-end based on Vue.js will be designed. This solution will decouple the project allowing it to approach a more scalable architecture.
+## CSV Import/Export
 
-### Scalability and maintainability
+### Export Signings
 
-- A test case battery will be developed to certify the correct integrated operation with CI / CD tools
-- Integrate the WTC project into the Github + DockerHub CI / CD system
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  "http://localhost:8000/api/signings/export/?start_date=2026-01-01&end_date=2026-01-31" \
+  -o signings.csv
+```
 
-### Functionality
-- Support work teams by sharing the hours worked by each of them.
+**Parameters:**
+- `start_date` (required): Start date (YYYY-MM-DD)
+- `end_date` (required): End date (YYYY-MM-DD)
 
-## iOS location issues
+**Output format:**
+```csv
+date,start_time,end_time,duration_minutes,location,description
+2026-01-15,2026-01-15 09:00:00+00:00,2026-01-15 18:00:00+00:00,540,Madrid HQ,Regular work
+```
 
-Go to iPhone settings > Privacy and security > location and make sure Safari is not set to "Never"
+### Import Signings
 
-More info: [Stackoverflow](https://stackoverflow.com/questions/72376616/geolocation-in-safari-iphone/75267430#75267430)
+```bash
+curl -X POST -H "Authorization: Bearer TOKEN" \
+  -F "file=@signings.csv" \
+  "http://localhost:8000/api/signings/import/"
+```
 
+**Required CSV format:**
+```csv
+start_time,end_time,location_id,description
+2026-02-01 09:00,2026-02-01 18:00,1,Office work
+2026-02-02 08:30,2026-02-02 17:30,,Remote work
+```
+
+**Fields:**
+| Field | Required | Format | Description |
+|-------|----------|--------|-------------|
+| `start_time` | Yes | `YYYY-MM-DD HH:MM` or ISO8601 | Check-in time |
+| `end_time` | No | `YYYY-MM-DD HH:MM` or ISO8601 | Check-out time |
+| `location_id` | No | Number | Location ID |
+| `description` | No | Text | Description/notes |
+
+**Success response:**
+```json
+{
+  "imported": 25,
+  "errors": []
+}
+```
+
+**Error response:**
+```json
+{
+  "imported": 0,
+  "errors": [
+    {"row": 3, "error": "Invalid date format in start_time"},
+    {"row": 5, "error": "Location with id 99 not found"}
+  ]
+}
+```
+
+**Notes:**
+- Import is atomic: if one row fails, nothing is imported
+- A WorkDay is automatically created for each signing with a location
+- See full example at [`docs/signings_import_example.csv`](docs/signings_import_example.csv)
+
+## External Time Manager Integration
+
+Sync signings from an external time management system.
+
+### Configuration
+
+1. Set the external time manager URL in your environment:
+   ```bash
+   EXTERNAL_TIME_MANAGER_URL=https://your-time-manager.example.com
+   ```
+
+2. Configure company external ID in Django admin (Companies > Company > External ID)
+
+3. Configure user external ID in Django admin or via Settings page in the frontend
+
+### Sync Endpoint
+
+```bash
+curl -X POST -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "external_api_token",
+    "api_key": "external_api_key",
+    "start_date": "2026-01-01",
+    "end_date": "2026-01-31"
+  }' \
+  "http://localhost:8000/api/integrations/sync/"
+```
+
+**Request body:**
+| Field | Required | Description |
+|-------|----------|-------------|
+| `token` | Yes | JWT token from external system |
+| `api_key` | Yes | API key from external system |
+| `start_date` | Yes | Start date (YYYY-MM-DD) |
+| `end_date` | Yes | End date (YYYY-MM-DD) |
+
+**Response:**
+```json
+{
+  "imported": 43,
+  "errors": []
+}
+```
+
+**Notes:**
+- Duplicate signings (same start_time) are skipped
+- WorkDay records are created automatically
+- External tokens are not stored - used only for the sync request
+
+## Tests
+
+```bash
+# Run all backend tests
+docker compose exec backend python -m pytest
+
+# Run tests with coverage
+docker compose exec backend python -m pytest --cov=apps
+
+# Run tests for a specific module
+docker compose exec backend python -m pytest apps/workdays/
+
+# Run frontend tests
+docker compose exec frontend npm test
+```
+
+## Development
+
+```bash
+# Create migrations
+docker compose exec backend python manage.py makemigrations
+
+# Apply migrations
+docker compose exec backend python manage.py migrate
+
+# Create superuser
+docker compose exec backend python manage.py createsuperuser
+
+# Django shell
+docker compose exec backend python manage.py shell
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DEBUG` | Debug mode | `False` |
+| `SECRET_KEY` | Django secret key | Dev default when DEBUG=True, **required in production** |
+| `DATABASE_URL` | PostgreSQL connection URL | `sqlite:///db.sqlite3` |
+| `ALLOWED_HOSTS` | Comma-separated allowed hosts | `localhost,127.0.0.1` |
+| `EXTERNAL_TIME_MANAGER_URL` | External time manager URL | - |
+
+### Production Security
+
+In production (`DEBUG=False`), `SECRET_KEY` **must** be set as an environment variable. The application will fail to start without it.
+
+```bash
+# Generate a secure secret key
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+## License
+
+MIT

@@ -1,0 +1,50 @@
+[
+  {
+    "model": "core.daytype",
+    "pk": 1,
+    "fields": {
+      "name": "Working",
+      "requires_signing": true
+    }
+  },
+  {
+    "model": "core.daytype",
+    "pk": 2,
+    "fields": {
+      "name": "Vacation",
+      "requires_signing": false
+    }
+  },
+  {
+    "model": "core.daytype",
+    "pk": 3,
+    "fields": {
+      "name": "Sick Leave",
+      "requires_signing": false
+    }
+  },
+  {
+    "model": "core.daytype",
+    "pk": 4,
+    "fields": {
+      "name": "Holiday",
+      "requires_signing": false
+    }
+  },
+  {
+    "model": "core.daytype",
+    "pk": 5,
+    "fields": {
+      "name": "Rest",
+      "requires_signing": false
+    }
+  },
+  {
+    "model": "core.daytype",
+    "pk": 6,
+    "fields": {
+      "name": "Day Off",
+      "requires_signing": false
+    }
+  }
+]
